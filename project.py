@@ -20,10 +20,12 @@ def buildDatabases(excelName: str) -> list:
 
     return [dancesByPartner, danceOrder, partnerOrder]
 
-def buildHeat(dancesByPartner: dict):    
-    #perhaps map a random value for the keys to not create the same Heat each time
+def buildHeat(dancesByPartner: dict, danceOrder: dict, partnerOrder: dict):    
+    print(dancesByPartner)
+    print(danceOrder)
+    print(partnerOrder)
     pass
 
 if __name__ == "__main__":
     dancesByPartner, danceOrder, partnerOrder = buildDatabases("2021-10 Program.xlsx")
-    
+    buildHeat(dancesByPartner, danceOrder, partnerOrder)
