@@ -1,6 +1,9 @@
 import random
 import numpy as np
+import openpyxl
 import pandas as pd
+from openpyxl import load_workbook
+import openpyxl
 
 class Heat:
     def __init__(self, dance, couples):
@@ -89,43 +92,43 @@ def buildHeat(dancesByPartner: dict, danceOrder: list, partnerOrder: list):
 def orderHeats():
     pass
 
+#function to save the heats into the desired workbook
+def saveToSheet(fileName: str, sheetName: str, heatList: list):
+
+    excelBook = load_workbook(fileName)
+    with pd.ExcelWriter(fileName, engine='openpyxl') as writer:
+        writer.book = excelBook
+        startRow = 1
+        startCol = 1
+        for i in heatList:
+            df = pd.DataFrame({
+                f'Heat {i}': [np.nan]*len(i.couples),
+                'Dance': [i.dance]*len(i.couples),
+                'Partners': [x for x in i.couples]
+            })
+            
+            df.to_excel(
+                excel_writer=writer,
+                sheet_name=sheetName,
+                columns=['Dance', 'Partners'],
+                index=False,
+                header=False,
+                startrow=startRow,
+                startcol=startCol,
+            )
+            startRow += len(i.couples) + 1
+        
+        writer.save()
+
+
 if __name__ == "__main__":
-    dancesByPartner, danceOrder, partnerOrder = buildDatabases("2021-10 Program.xlsx")
-    # heatList = buildHeat(dancesByPartner, danceOrder, partnerOrder)
-    # dancesByPartner = {'Annie Murphy + Alex': ['Waltz', 'Tango', 'Foxtrot', 'Cha-Cha', 'Rumba', 'Swing', 'Bolero', 'WCSw', 'Pasodoble'], 
-                        # 'Annie Zhang + Dmitry': ['Waltz', 'Tango', 'Foxtrot', 'Cha-Cha', 'Rumba', 'Swing', 'Salsa', 'Hustle', 'Waltz', 'Tango', 'Foxtrot', 'Cha-Cha', 'Rumba', 'Swing', 'Salsa', 'Hustle'], 
-                        # 'Carrie Heffner + Sergei': ['Waltz', 'Tango', 'Foxtrot', 'V.Waltz', 'Cha-Cha', 'Rumba', 'Swing', 'Bolero', 'WCSw', 'Salsa', 'Hustle'], 
-                        # 'Cindy Moore + Dmitry': ['Bachata', 'Int.Cha-Cha', 'Int.Samba', 'Int.Rumba', 'Jive', 'Int.Cha-Cha', 'Int.Samba', 'Int.Rumba', 'Jive', 'Waltz', 'Tango', 'Foxtrot', 'V.Waltz', 'Cha-Cha', 'Rumba', 'Swing', 'Bolero', 'Mambo', 'WCSw', 'Merengue', 'Pasodoble', 'Salsa', 'Hustle'], 
-                        # 'Diana Yin + Alex': ['Waltz', 'Tango', 'Foxtrot', 'V.Waltz', 'Cha-Cha', 'Rumba', 'Swing', 'Bolero', 'Mambo', 'Arg.Tango', 'Waltz', 'Tango', 'Foxtrot', 'V.Waltz', 'Cha-Cha', 'Rumba', 'Swing', 'Bolero', 'Mambo', 'Arg.Tango', 'Open Mambo', 'Open Mambo', 'Int.Cha-Cha', 'Int.Samba', 'Int.Rumba', 'Pasodoble', 'Quickstep', 'Int.Cha-Cha', 'Int.Samba', 'Int.Rumba', 'Pasodoble', 'Quickstep'], 
-                        # 'Donna Reed + Sergei': ['Waltz', 'Tango', 'Foxtrot', 'V.Waltz', 'Cha-Cha', 'Rumba', 'Swing', 'Waltz', 'Tango', 'Foxtrot', 'V.Waltz', 'Cha-Cha', 'Rumba', 'Swing', 'Waltz', 'Tango', 'Foxtrot', 'V.Waltz', 'Cha-Cha', 'Rumba', 'Swing'], 
-                        # 'Ellie Konovalova + Dmitry': ['Waltz', 'Tango', 'Foxtrot', 'V.Waltz', 'Cha-Cha', 'Rumba', 'Swing', 'Bolero', 'Samba', 'Merengue', 'Pasodoble', 'Hustle'], 
-                        # 'Jackie Tarr + Alex': ['Int.Cha-Cha', 'Int.Samba', 'Int.Rumba', 'Pasodoble', 'Jive', 'Int.Cha-Cha', 'Int.Samba', 'Int.Rumba', 'Pasodoble', 'Jive'], 
-                        # 'Jackie Tarr + Dmitry': ['Waltz', 'Tango', 'Foxtrot', 'V.Waltz', 'Quickstep', 'Waltz', 'Tango', 'Foxtrot', 'V.Waltz', 'Quickstep'], 
-                        # 'Jane DiCecco + Dmitry': ['Waltz', 'Tango', 'Foxtrot', 'V.Waltz', 'Cha-Cha', 'Rumba', 'Swing', 'Bolero', 'Merengue', 'Hustle', 'Waltz', 'Tango', 'Foxtrot', 'V.Waltz', 'Cha-Cha', 'Rumba', 'Swing', 'Bolero', 'Merengue', 'Hustle'], 
-                        # 'Jeanne-Marie Blystone + Alex': ['Waltz', 'Foxtrot', 'Cha-Cha', 'Rumba', 'Bolero', 'WCSw', 'Waltz', 'Foxtrot', 'Cha-Cha', 'Rumba', 'Bolero', 'WCSw'], 
-                        # 'Karol Giannantonio + Sergei': ['Waltz', 'Tango', 'Foxtrot', 'V.Waltz', 'Cha-Cha', 'Rumba', 'Swing', 'Merengue', 'Salsa', 'Hustle', 'Waltz', 'Tango', 'Foxtrot', 'V.Waltz', 'Cha-Cha', 'Rumba', 'Swing', 'Merengue', 'Salsa', 'Hustle', 'Waltz', 'Tango', 'Foxtrot', 'V.Waltz', 'Cha-Cha', 'Rumba', 'Swing', 'Merengue', 'Salsa', 'Hustle'], 
-                        # 'Pam Liu + Dmitry': ['Waltz', 'Tango', 'Foxtrot', 'Cha-Cha', 'Rumba', 'Bolero', 'Arg.Tango'], 'Patrick Seyler + Dasha': ['Arg.Tango', 'Arg.Tango'], 
-                        # 'Rebecca Jordan + Sergei': ['Waltz', 'Tango', 'Foxtrot', 'Cha-Cha', 'Rumba', 'Swing', 'Mambo', 'Merengue', 'Waltz', 'Tango', 'Foxtrot', 'Cha-Cha', 'Rumba', 'Swing', 'Mambo', 'Merengue'], 
-                        # 'Shuai Wang + Alex': ['Waltz', 'Tango', 'Foxtrot', 'Cha-Cha', 'Rumba', 'Swing', 'Mambo'], 'Sophia Kogay + Alex': ['Waltz', 'Tango', 'Foxtrot', 'V.Waltz', 'Cha-Cha', 'Rumba', 'Swing', 'Bolero', 'Mambo', 'Samba'], 
-                        # 'Sophia Kogay + Sergei': ['Waltz', 'Tango', 'Foxtrot', 'V.Waltz', 'Cha-Cha', 'Rumba', 'Swing', 'Bolero', 'Mambo', 'Samba']}
 
-    # danceOrder = ['Bolero', 'Tango', 'Int.Samba', 'Hustle', 'V.Waltz', 'Jive', 'Pasodoble', 'Rumba', 'Salsa', 'Open Mambo', 'Foxtrot', 'Bachata', 'Mambo', 'Arg.Tango', 'Swing', 'Merengue', 'Cha-Cha', 'Int.Cha-Cha', 'Samba', 'Quickstep', 'Waltz', 'WCSw', 'Int.Rumba']
-    # partnerOrder = ['Patrick Seyler + Dasha', 'Rebecca Jordan + Sergei', 'Donna Reed + Sergei', 'Annie Zhang + Dmitry', 'Karol Giannantonio + Sergei', 'Carrie Heffner + Sergei', 'Jeanne-Marie Blystone + Alex', 'Jackie Tarr + Alex', 'Cindy Moore + Dmitry', 'Sophia Kogay + Sergei', 'Annie Murphy + Alex', 'Shuai Wang + Alex', 'Pam Liu + Dmitry', 'Diana Yin + Alex', 'Jackie Tarr + Dmitry', 'Ellie Konovalova + Dmitry', 'Jane DiCecco + Dmitry', 'Sophia Kogay + Alex']
+    fileName = input("Enter the file you want to save this data to: ")
+    sheetName = input("Enter the sheetname you want to save this data to: ")
 
-    # dancesByPartner = {'Pam Liu + Dmitry': ['Waltz', 'Tango', 'Foxtrot', 'Cha-Cha', 'Rumba', 'Bolero', 'Arg.Tango'], 
-    #                     'Diana Yin + Alex': ['Waltz', 'Tango', 'Foxtrot', 'V.Waltz', 'Cha-Cha', 'Rumba', 'Swing', 'Bolero', 'Mambo', 'Arg.Tango', 'Waltz', 'Tango', 'Foxtrot', 'V.Waltz', 'Cha-Cha', 'Rumba', 'Swing', 'Bolero', 'Mambo', 'Arg.Tango', 'Open Mambo', 'Open Mambo', 'Int.Cha-Cha', 'Int.Samba', 'Int.Rumba', 'Pasodoble', 'Quickstep', 'Int.Cha-Cha', 'Int.Samba', 'Int.Rumba', 'Pasodoble', 'Quickstep'], 
-    #                     'Patrick Seyler + Dasha': ['Arg.Tango', 'Arg.Tango'], 'Annie Zhang + Dmitry': ['Waltz', 'Tango', 'Foxtrot', 'Cha-Cha', 'Rumba', 'Swing', 'Salsa', 'Hustle', 'Waltz', 'Tango', 'Foxtrot', 'Cha-Cha', 'Rumba', 'Swing', 'Salsa', 'Hustle'],
-    #                     'Carrie Heffner + Sergei': ['Waltz', 'Tango', 'Foxtrot', 'V.Waltz', 'Cha-Cha', 'Rumba', 'Swing', 'Bolero', 'WCSw', 'Salsa', 'Hustle'],
-    #                     'Karol Giannantonio + Sergei': ['Waltz', 'Tango', 'Foxtrot', 'V.Waltz', 'Cha-Cha', 'Rumba', 'Swing', 'Merengue', 'Salsa', 'Hustle', 'Waltz', 'Tango', 'Foxtrot', 'V.Waltz', 'Cha-Cha', 'Rumba', 'Swing', 'Merengue', 'Salsa', 'Hustle', 'Waltz', 'Tango', 'Foxtrot', 'V.Waltz', 'Cha-Cha', 'Rumba', 'Swing', 'Merengue', 'Salsa', 'Hustle'],
-    #                     'Cindy Moore + Dmitry': ['Bachata', 'Int.Cha-Cha', 'Int.Samba', 'Int.Rumba', 'Jive', 'Int.Cha-Cha', 'Int.Samba', 'Int.Rumba', 'Jive', 'Waltz', 'Tango', 'Foxtrot', 'V.Waltz', 'Cha-Cha', 'Rumba', 'Swing', 'Bolero', 'Mambo', 'WCSw', 'Merengue', 'Pasodoble', 'Salsa', 'Hustle'],
-    #                     'Jackie Tarr + Dmitry': ['Waltz', 'Tango', 'Foxtrot', 'V.Waltz', 'Quickstep', 'Waltz', 'Tango', 'Foxtrot', 'V.Waltz', 'Quickstep']
-    #                     }
-    
-    # danceOrder = ['Arg.Tango', 'Salsa', 'Quickstep']
-    # partnerOrder = ['Pam Liu + Dmitry', 'Diana Yin + Alex', 'Patrick Seyler + Dasha', 'Annie Zhang + Dmitry', 'Carrie Heffner + Sergei', 'Karol Giannantonio + Sergei', 'Cindy Moore + Dmitry', 'Jackie Tarr + Dmitry']
-
+    dancesByPartner, danceOrder, partnerOrder = buildDatabases(fileName)
     heatList = buildHeat(dancesByPartner, danceOrder, partnerOrder)
 
-    for i in heatList:
-        print(i.dance, i.couples)
-
+    #for i in heatList:
+    #    print(i.dance, i.couples)
+    saveToSheet(fileName, sheetName, heatList)
