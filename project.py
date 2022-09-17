@@ -5,10 +5,24 @@ import pandas as pd
 from openpyxl import load_workbook
 import openpyxl
 
+class Couple:
+    def __init__(self, first: str, second: str):
+        self.first = first
+        self.second = second
+
 class Heat:
-    def __init__(self, dance, couples):
+    def __init__(self, dance: str, couples: list):
         self.dance = dance
         self.couples = couples
+    def has(self, person: str) -> bool:
+        for c in self.couples:
+            if person == c.first or person == c.second:
+                return True
+
+class CoupleAndDances:
+    def __init__(self, couple: Couple, dances: list):
+        self.couple = couple
+        self.dances = dances
 
 def buildDatabases(excelName: str) -> list:
     df = pd.read_excel(excelName, usecols=[0,1])
@@ -29,63 +43,36 @@ def buildDatabases(excelName: str) -> list:
 #function to create the heats based on dances and partners
 def buildHeat(dancesByPartner: dict, danceOrder: list, partnerOrder: list):
 
-    i = 1 #Heat number count
-    skip = False #Flag to skip to next index in list
-    heats = []
-    for danceKey in danceOrder:
-        couplesPerHeat = [] #list of unique partners to add to the heat
-        repeatPartners = False #check for repeat partners while scanning the list to avoid one partner dancing with two partners in one heat
+    coupleAndDancesList = [] #of type CoupleAndDances
+
+    for dancers in dancesByPartner:
+        splitPartners = dancers.split(" + ")
+        first = splitPartners[0]
+        second = splitPartners[1]
+        dances = dancesByPartner[dancers]
         
-        tempPartnerOrder = list(partnerOrder)
-        index = 0
-        while index != len(tempPartnerOrder):# or repeatPartners != 0:
-            if danceKey in dancesByPartner[tempPartnerOrder[index]]:
+        coupleAndDancesList.append(CoupleAndDances(Couple(first, second), dances))
 
-                #check if the about-to-be-added couple contains repeating partners in the same heat
-                splitPartners = tempPartnerOrder[index].split(" + ")
+    heats = [] #of type Heat
 
-                for j in range(len(couplesPerHeat)):
-                    if splitPartners[0] in couplesPerHeat[j].split(" + ") or splitPartners[1] in couplesPerHeat[j].split(" + "):
-                        repeatPartners = True
-                        index += 1 #if either of the partners are already in this heat, skip adding them
-                        skip = True
-                        break
-                
-                #Found repeat couple, skip over them (maybe this and 'repeatPartners' are the same thing)
-                if skip:
-                    skip = False
-                    continue
+    while len(coupleAndDancesList) != 0:
+        coupleAndDance = coupleAndDancesList[0]
+        couple = coupleAndDance.couple
+        dance = coupleAndDance.dances.pop(0)
+        if len(coupleAndDance.dances) == 0: #if couple has no more dances they are scheduled for, remove Couple
+            coupleAndDancesList.pop(0)
+        
+        found = False
 
-                couplesPerHeat.append(tempPartnerOrder[index])
-                tempPartnerOrder.remove(tempPartnerOrder[index])
+        for h in heats:
+            if h.dance == dance and (not h.has(couple.first)) and (not h.has(couple.second)):
+                h.couples.append(couple)
+                found = True
+                break
 
-            #Reached the end of the list and all unique couples are found
-            elif index == len(tempPartnerOrder)-1:
-                
-                globals()[f"Heat{i}"] = Heat(danceKey, couplesPerHeat) #THIS IS A VERY BAD IDEA!!!!!!!!!!! but hey, Python allows it :)
-                heats.append(globals()[f"Heat{i}"])
-                couplesPerHeat = []
-                index += 1
+        if not found:
+            heats.append(Heat(dance, [couple]))
 
-                if repeatPartners:
-                    repeatPartners = False
-                    index = 0
-                    i += 1
-
-            else: #current couple is not doing the current dance
-                index += 1
-
-        #In case the end of the list is reached and the couple is participating in the current dance but they have repeating partners
-        if len(couplesPerHeat) != 0:
-            globals()[f"Heat{i}"] = Heat(danceKey, couplesPerHeat)
-            heats.append(globals()[f"Heat{i}"])
-
-        i += 1
-    
-    #Edge case
-    if len(couplesPerHeat) != 0:
-        globals()[f"Heat{i}"] = Heat(danceKey, couplesPerHeat)
-        heats.append(globals()[f"Heat{i}"])
     return heats
 
 #fuction to order the heats
@@ -124,11 +111,27 @@ def saveToSheet(fileName: str, sheetName: str, heatList: list):
 if __name__ == "__main__":
 
     fileName = input("Enter the file you want to save this data to: ")
-    sheetName = input("Enter the sheetname you want to save this data to: ")
+    #sheetName = input("Enter the sheetname you want to save this data to: ")
 
     dancesByPartner, danceOrder, partnerOrder = buildDatabases(fileName)
+
+    # danceCheck = {}
+    # for dancer in dancesByPartner:
+    #     for dance in dancesByPartner[dancer]:
+    #         if dancer not in danceCheck:
+    #             danceCheck[dancer] = {dance: 1}
+    #         else:
+    #             if dance not in danceCheck[dancer]:
+    #                 danceCheck[dancer][dance] = 1
+    #             else:
+    #                 danceCheck[dancer][dance] += 1
+    # print(danceCheck)
+    
     heatList = buildHeat(dancesByPartner, danceOrder, partnerOrder)
 
-    #for i in heatList:
-    #    print(i.dance, i.couples)
-    saveToSheet(fileName, sheetName, heatList)
+    for i in heatList:
+        print(f"Dance: {i.dance}")
+        print("Couples: ")
+        for j in i.couples:
+            print(j.first, j.second)
+        print("\n")
