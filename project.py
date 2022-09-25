@@ -5,6 +5,7 @@ import pandas as pd
 from openpyxl import load_workbook
 import openpyxl
 
+
 class Couple:
     def __init__(self, first: str, second: str):
         self.first = first
@@ -76,8 +77,17 @@ def buildHeat(dancesByPartner: dict, danceOrder: list, partnerOrder: list):
     return heats
 
 #fuction to order the heats
-def orderHeats():
-    pass
+def orderHeats(heatList: list) -> list:
+    ordered = {}
+    for i in heatList:
+        if i.dance in ordered:
+            ordered[i.dance].append(i)
+        else:
+            ordered[i.dance] = [i]
+    
+    merged = [x for _ in list(ordered.values()) for x in _]
+
+    return merged
 
 #function to save the heats into the desired workbook
 def saveToSheet(fileName: str, sheetName: str, heatList: list):
@@ -87,13 +97,19 @@ def saveToSheet(fileName: str, sheetName: str, heatList: list):
         writer.book = excelBook
         startRow = 1
         startCol = 1
-        for i in heatList:
+        currentDance = heatList[0].dance
+        for i,v in enumerate(heatList):
             df = pd.DataFrame({
-                f'Heat {i}': [np.nan]*len(i.couples),
-                'Dance': [i.dance]*len(i.couples),
-                'Partners': [x for x in i.couples]
+                f'Heat {i+1}': [np.nan]*len(v.couples),
+                'Dance': [v.dance]*len(v.couples),
+                'Partners': [f'{x.first} + {x.second}' for x in v.couples]
             })
             
+            if currentDance != v.dance:
+                startRow = 1
+                startCol += 5
+                currentDance = v.dance
+
             df.to_excel(
                 excel_writer=writer,
                 sheet_name=sheetName,
@@ -103,14 +119,18 @@ def saveToSheet(fileName: str, sheetName: str, heatList: list):
                 startrow=startRow,
                 startcol=startCol,
             )
-            startRow += len(i.couples) + 1
+            startRow += len(v.couples) + 1
         
         writer.save()
 
 
 if __name__ == "__main__":
+    import sys
 
-    fileName = input("Enter the file you want to save this data to: ")
+    #fileName = sys.argv[1]
+    #fileName = input("Enter the file you want to save this data to: ")
+    fileName = "2021-10 Program.xlsx"
+    sheetName = "heat"
     #sheetName = input("Enter the sheetname you want to save this data to: ")
 
     dancesByPartner, danceOrder, partnerOrder = buildDatabases(fileName)
@@ -128,10 +148,13 @@ if __name__ == "__main__":
     # print(danceCheck)
     
     heatList = buildHeat(dancesByPartner, danceOrder, partnerOrder)
+    orderedList = orderHeats(heatList)
 
-    for i in heatList:
-        print(f"Dance: {i.dance}")
-        print("Couples: ")
-        for j in i.couples:
-            print(j.first, j.second)
-        print("\n")
+    saveToSheet(fileName, sheetName, orderedList)
+
+    # for i in heatList:
+    #     print(f"Dance: {i.dance}")
+    #     print("Couples: ")
+    #     for j in i.couples:
+    #         print(j.first, j.second)
+    #     print("\n")
