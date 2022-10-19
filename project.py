@@ -5,7 +5,6 @@ import pandas as pd
 from openpyxl import load_workbook
 import openpyxl
 
-
 class Couple:
     def __init__(self, first: str, second: str):
         self.first = first
@@ -46,7 +45,9 @@ def buildHeat(dancesByPartner: dict, danceOrder: list, partnerOrder: list):
 
     coupleAndDancesList = [] #of type CoupleAndDances
 
-    for dancers in dancesByPartner:
+    #for dancers in dancesByPartner:
+    for dancers in partnerOrder:
+        #print(dancers)
         splitPartners = dancers.split(" + ")
         first = splitPartners[0]
         second = splitPartners[1]
@@ -125,13 +126,11 @@ def saveToSheet(fileName: str, sheetName: str, heatList: list):
 
 
 if __name__ == "__main__":
-    import sys
 
-    #fileName = sys.argv[1]
-    #fileName = input("Enter the file you want to save this data to: ")
-    fileName = "2021-10 Program.xlsx"
-    sheetName = "heat"
-    #sheetName = input("Enter the sheetname you want to save this data to: ")
+    fileName = input("Enter the file you want to save this data to: ")
+    #fileName = "2021-10 Program.xlsx"
+    #sheetName = "heat"
+    sheetName = input("Enter the sheetname you want to save this data to: ")
 
     dancesByPartner, danceOrder, partnerOrder = buildDatabases(fileName)
 
@@ -150,11 +149,8 @@ if __name__ == "__main__":
     heatList = buildHeat(dancesByPartner, danceOrder, partnerOrder)
     orderedList = orderHeats(heatList)
 
-    saveToSheet(fileName, sheetName, orderedList)
-
-    # for i in heatList:
-    #     print(f"Dance: {i.dance}")
-    #     print("Couples: ")
+    # for i in orderedList:
     #     for j in i.couples:
-    #         print(j.first, j.second)
-    #     print("\n")
+    #         print(i.dance, j.first, j.second)
+
+    saveToSheet(fileName, sheetName, orderedList)
